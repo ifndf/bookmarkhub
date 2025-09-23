@@ -1,0 +1,50 @@
+/* CSS 变量定义 */
+:root {
+    /* 主色调 */
+    --primary-color: #2196F3;
+    --primary-dark: #1976D2;
+    --secondary-color: #FFC107;
+    --success-color: #4CAF50;
+    --danger-color: #F44336;
+    --warning-color: #FF9800;
+    --info-color: #00BCD4;
+    
+    /* 文字颜色 */
+    --text-primary: #212121;
+    --text-secondary: #757575;
+    --text-disabled: #BDBDBD;
+    
+    /* 背景颜色 */
+    --background: #FAFAFA;
+    --surface: #FFFFFF;
+    --surface-variant: #F5F5F5;
+    
+    /* 边框 */
+    --border-color: #E0E0E0;
+    --border-radius: 12px;
+    --border-radius-small: 8px;
+    
+    /* 阴影 */
+    --shadow-light: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-medium: 0 4px 12px rgba(0,0,0,0.15);
+    --shadow-heavy: 0 8px 24px rgba(0,0,0,0.2);
+    
+    /* 过渡动画 */
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-primary: #FFFFFF;
+        --text-secondary: #BDBDBD;
+        --text-disabled: #757575;
+        
+        --background: #121212;
+        --surface: #1E1E1E;
+        --surface-variant: #2D2D2D;
+        
+        --border-color: #404040;
+    }
+}

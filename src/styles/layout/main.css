@@ -1,0 +1,49 @@
+/* 主要内容区域 */
+.main {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    width: 100%;
+}
+
+/* 分类筛选样式 */
+.categories {
+    margin-bottom: 2rem;
+}
+
+.category-chips {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* 书签容器 */
+.bookmarks-container {
+    position: relative;
+}
+
+/* 空状态样式 */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-secondary);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .main {
+        padding: 1rem;
+    }
+    
+    .category-chips {
+        justify-content: center;
+    }
+}

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <title>BookmarkHub - 私人书签管理</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <!-- 头部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <i class="fas fa-bookmark"></i>
+                    BookmarkHub
+                </h1>
+                <div class="header-actions">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                        <button class="search-help-btn" id="searchHelpBtn" title="搜索帮助">
+                            <i class="fas fa-question-circle"></i>
+                        </button>
+                        <div class="search-help" id="searchHelp">
+                            <div class="search-help-content">
+                                <h4>🔍 搜索语法：</h4>
+                                <ul>
+                                    <li><strong>空格分隔</strong>：与逻辑 (同时包含)<br><code>前端 学习</code> - 同时包含"前端"和"学习"</li>
+                                    <li><strong>| 分隔</strong>：或逻辑 (包含任一)<br><code>JavaScript|Vue</code> - 包含"JavaScript"或"Vue"</li>
+                                    <li><strong>混合使用</strong>：<br><code>前端 JavaScript|Vue</code> - 包含"前端"且包含"JavaScript"或"Vue"</li>
+                                    <li><strong>标签搜索</strong>：直接输入标签名或点击书签上的标签</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline" id="backupBtn" title="数据备份">
+                        <i class="fas fa-download"></i>
+                        备份
+                    </button>
+                    <button class="btn btn-secondary" id="privacySpaceBtn" title="隐私空间">
+                        <i class="fas fa-user-secret"></i>
+                        隐私空间
+                    </button>
+                    <button class="btn btn-primary" id="addBookmarkBtn">
+                        <i class="fas fa-plus"></i>
+                        添加书签
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main">
+            <!-- 分类筛选 -->
+            <div class="categories">
+                <div class="category-chips" id="categoryChips">
+                    <button class="chip active" data-category="all">全部</button>
+                    <button class="chip" data-category="uncategorized">未分类</button>
+                    <button class="chip add-category" id="addCategoryBtn">
+                        <i class="fas fa-plus"></i>
+                        添加分类
+                    </button>
+                </div>
+                <!-- 批量操作按钮 -->
+                <div class="batch-actions" id="batchActions" style="display: none;">
+                    <button class="btn btn-danger btn-sm" id="batchDeleteBtn" title="删除当前分类下的所有书签">
+                        <i class="fas fa-trash-alt"></i>
+                        清空分类
+                    </button>
+                </div>
+            </div>
+
+            <!-- 书签列表 -->
+            <div class="bookmarks-container">
+                <div class="bookmarks-grid" id="bookmarksGrid">
+                    <!-- 书签卡片将通过JavaScript动态生成 -->
+                </div>
+                
+                <!-- 空状态 -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-bookmark"></i>
+                    </div>
+                    <h3>还没有书签</h3>
+                    <p>点击右上角的"添加书签"按钮来添加你的第一个书签</p>
+                </div>
+                
+                <!-- 分页控件 -->
+                <div class="pagination" id="pagination" style="display: none;">
+                    <div class="pagination-info">
+                        <span id="paginationInfo">第 1 页，共 1 页</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" id="firstPageBtn" title="首页">
+                            <i class="fas fa-angle-double-left"></i>
+                        </button>
+                        <button class="pagination-btn" id="prevPageBtn" title="上一页">
+                            <i class="fas fa-angle-left"></i>
+                        </button>
+                        <div class="page-jump">
+                            <input type="number" id="pageJumpInput" min="1" placeholder="页码">
+                            <button class="pagination-btn" id="pageJumpBtn" title="跳转">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <button class="pagination-btn" id="nextPageBtn" title="下一页">
+                            <i class="fas fa-angle-right"></i>
+                        </button>
+                        <button class="pagination-btn" id="lastPageBtn" title="末页">
+                            <i class="fas fa-angle-double-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 添加/编辑书签模态框 -->
+        <div class="modal" id="bookmarkModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">添加书签</h2>
+                    <button class="modal-close" id="closeModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form class="modal-body" id="bookmarkForm">
+                    <div class="form-group">
+                        <label for="bookmarkUrl">网址 *</label>
+                        <input type="text" id="bookmarkUrl" placeholder="baidu.com 或 https://www.baidu.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookmarkTitle">标题 *</label>
+                        <input type="text" id="bookmarkTitle" placeholder="为这个网站起个名字" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookmarkDescription">描述</label>
+                        <textarea id="bookmarkDescription" placeholder="添加一些描述信息（可选）" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookmarkImage">预览图片 <span class="optional-label">(可选)</span></label>
+                        <input type="url" id="bookmarkImage" placeholder="https://example.com/image.jpg">
+                        <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                            <img id="imagePreview" src="" alt="预览图片" class="image-preview">
+                            <button type="button" class="remove-image" id="removeImageBtn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <small class="form-hint">
+                            <i class="fas fa-info-circle"></i>
+                            适合书籍封面、文章配图等。支持 JPG、PNG、GIF 格式
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookmarkCategory">分类</label>
+                        <select id="bookmarkCategory">
+                            <option value="">未分类</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 添加分类模态框 -->
+        <div class="modal" id="categoryModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>添加分类</h2>
+                    <button class="modal-close" id="closeCategoryModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form class="modal-body" id="categoryForm">
+                    <div class="form-group">
+                        <label for="categoryName">分类名称 *</label>
+                        <input type="text" id="categoryName" placeholder="输入分类名称" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="categoryColor">颜色</label>
+                        <div class="color-picker">
+                            <input type="color" id="categoryColor" value="#2196F3">
+                            <span class="color-preview"></span>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelCategoryBtn">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 确认删除模态框 -->
+        <div class="modal" id="deleteModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>确认删除</h2>
+                    <button class="modal-close" id="closeDeleteModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="deleteMessage">确定要删除这个书签吗？此操作无法撤销。</p>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">取消</button>
+                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">删除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐私空间密码验证模态框 -->
+    <div class="modal" id="privacyPasswordModal">
+        <div class="modal-content privacy-modal">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-user-secret"></i>
+                    进入隐私空间
+                </h2>
+                <button class="modal-close" id="closePrivacyPasswordModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="modal-body" id="privacyPasswordForm">
+                <div class="privacy-info">
+                    <div class="privacy-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <p>隐私空间是您的私密书签收藏区域，需要密码验证才能访问。</p>
+                    <div class="privacy-features">
+                        <div class="feature-item">
+                            <i class="fas fa-lock"></i>
+                            <span>独立的书签存储空间</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-folder"></i>
+                            <span>独立的分类管理系统</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-eye-slash"></i>
+                            <span>完全隐私保护</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="privacyPassword">隐私空间密码</label>
+                    <div class="password-input-container">
+                        <input type="password" id="privacyPassword" placeholder="请输入隐私空间密码" required autocomplete="off">
+                        <button type="button" class="password-toggle" id="privacyPasswordToggle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-error" id="privacyPasswordError" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span id="privacyPasswordErrorText">密码错误，请重试</span>
+                    </div>
+                </div>
+                <div class="privacy-setup" id="privacySetup" style="display: none;">
+                    <div class="setup-info">
+                        <i class="fas fa-info-circle"></i>
+                        <p>首次使用隐私空间，请设置访问密码（至少4位）：</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="privacyPasswordConfirm">确认密码</label>
+                        <input type="password" id="privacyPasswordConfirm" placeholder="再次输入密码确认" autocomplete="off">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelPrivacyPasswordBtn">取消</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-unlock"></i>
+                        <span id="privacyPasswordBtnText">进入</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 隐私空间主界面 -->
+    <div class="privacy-space" id="privacySpace" style="display: none;">
+        <div class="privacy-header">
+            <div class="privacy-header-content">
+                <h1 class="privacy-logo">
+                    <i class="fas fa-user-secret"></i>
+                    隐私空间
+                </h1>
+                <div class="privacy-actions">
+                    <div class="search-container">
+                        <input type="text" id="privacySearchInput" class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                        <button class="search-help-btn" id="privacySearchHelpBtn" title="搜索帮助">
+                            <i class="fas fa-question-circle"></i>
+                        </button>
+                        <div class="search-help" id="privacySearchHelp">
+                            <div class="search-help-content">
+                                <h4>🔍 搜索语法：</h4>
+                                <ul>
+                                    <li><strong>空格分隔</strong>：与逻辑 (同时包含)<br><code>前端 学习</code> - 同时包含"前端"和"学习"</li>
+                                    <li><strong>| 分隔</strong>：或逻辑 (包含任一)<br><code>JavaScript|Vue</code> - 包含"JavaScript"或"Vue"</li>
+                                    <li><strong>混合使用</strong>：<br><code>前端 JavaScript|Vue</code> - 包含"前端"且包含"JavaScript"或"Vue"</li>
+                                    <li><strong>标签搜索</strong>：直接输入标签名或点击书签上的标签</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline" id="privacyBackupBtn" title="隐私数据备份">
+                        <i class="fas fa-download"></i>
+                        备份
+                    </button>
+                    <button class="btn btn-outline" id="privacySettingsBtn" title="隐私空间设置">
+                        <i class="fas fa-cog"></i>
+                        设置
+                    </button>
+                    <button class="btn btn-primary" id="addPrivacyBookmarkBtn">
+                        <i class="fas fa-plus"></i>
+                        添加隐私书签
+                    </button>
+                    <button class="btn btn-secondary" id="exitPrivacySpaceBtn" title="退出隐私空间">
+                        <i class="fas fa-sign-out-alt"></i>
+                        退出
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <main class="privacy-main">
+            <!-- 隐私分类筛选 -->
+            <div class="categories">
+                <div class="category-chips" id="privacyCategoryChips">
+                    <button class="chip active" data-category="all">全部</button>
+                    <button class="chip" data-category="uncategorized">未分类</button>
+                    <button class="chip add-category" id="addPrivacyCategoryBtn">
+                        <i class="fas fa-plus"></i>
+                        添加分类
+                    </button>
+                </div>
+                <!-- 隐私空间批量操作按钮 -->
+                <div class="batch-actions" id="privacyBatchActions" style="display: none;">
+                    <button class="btn btn-danger btn-sm" id="privacyBatchDeleteBtn" title="删除当前分类下的所有隐私书签">
+                        <i class="fas fa-trash-alt"></i>
+                        清空分类
+                    </button>
+                </div>
+            </div>
+
+            <!-- 隐私书签列表 -->
+            <div class="bookmarks-container">
+                <div class="bookmarks-grid" id="privacyBookmarksGrid">
+                    <!-- 隐私书签卡片将通过JavaScript动态生成 -->
+                </div>
+                
+                <!-- 空状态 -->
+                <div class="empty-state" id="privacyEmptyState" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-user-secret"></i>
+                    </div>
+                    <h3>隐私空间还没有书签</h3>
+                    <p>点击"添加隐私书签"按钮来添加您的第一个私密书签</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 隐私空间设置模态框 -->
+    <div class="modal" id="privacySettingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-cog"></i>
+                    隐私空间设置
+                </h2>
+                <button class="modal-close" id="closePrivacySettingsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>
+                        <i class="fas fa-key"></i>
+                        密码管理
+                    </h3>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>更改隐私空间密码</h4>
+                            <p>为了保障安全，建议定期更改隐私空间密码</p>
+                        </div>
+                        <button class="btn btn-primary" id="changePrivacyPasswordBtn">
+                            <i class="fas fa-edit"></i>
+                            更改密码
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>
+                        <i class="fas fa-shield-alt"></i>
+                        安全信息
+                    </h3>
+                    <div class="security-info">
+                        <div class="info-item">
+                            <i class="fas fa-info-circle"></i>
+                            <span>隐私数据采用AES加密存储</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>密码至少需要4位字符</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>请妥善保管密码，遗失后无法恢复数据</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 更改密码模态框 -->
+    <div class="modal" id="changePasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-key"></i>
+                    更改隐私空间密码
+                </h2>
+                <button class="modal-close" id="closeChangePasswordModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="modal-body" id="changePasswordForm">
+                <div class="form-group">
+                    <label for="currentPassword">当前密码</label>
+                    <div class="password-input-container">
+                        <input type="password" id="currentPassword" placeholder="请输入当前密码" required autocomplete="off">
+                        <button type="button" class="password-toggle" id="currentPasswordToggle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="newPassword">新密码</label>
+                    <div class="password-input-container">
+                        <input type="password" id="newPassword" placeholder="请输入新密码（至少4位）" required autocomplete="off">
+                        <button type="button" class="password-toggle" id="newPasswordToggle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmNewPassword">确认新密码</label>
+                    <div class="password-input-container">
+                        <input type="password" id="confirmNewPassword" placeholder="再次输入新密码确认" required autocomplete="off">
+                        <button type="button" class="password-toggle" id="confirmNewPasswordToggle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="password-error" id="changePasswordError" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="changePasswordErrorText"></span>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelChangePasswordBtn">取消</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i>
+                        确认更改
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <i class="toast-icon"></i>
+            <span class="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
