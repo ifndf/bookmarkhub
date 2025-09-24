@@ -389,38 +389,59 @@ body {
     flex: 1;
 }
 
-.category-delete-btn {
-    display: flex;
-    background: none;
-    border: none;
-    color: inherit;
-    font-size: 0.8rem;
-    cursor: pointer;
-    padding: 2px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.6;
-    transition: all 0.2s ease;
-    margin-left: 2px;
-    pointer-events: auto;
-    z-index: 10;
-    position: relative;
+/* 重置所有可能的样式冲突 */
+button.category-delete-btn {
+    all: unset !important;
 }
 
-.category-chip:hover .category-delete-btn {
-    opacity: 1;
+/* 强制隐藏删除按钮 - 默认状态 */
+.chip.category-chip .category-delete-btn,
+.category-chip .category-delete-btn {
+    display: flex !important;
+    background: none !important;
+    border: none !important;
+    color: inherit !important;
+    font-size: 0.8rem !important;
+    cursor: pointer !important;
+    padding: 2px !important;
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 50% !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: all 0.2s ease !important;
+    margin-left: 2px !important;
+    pointer-events: none !important;
+    z-index: 10 !important;
+    position: relative !important;
+    transform: scale(0.8) !important;
 }
 
-.category-delete-btn:hover {
-    opacity: 1;
+/* 长按时显示删除按钮 - 最高优先级 */
+.chip.category-chip.long-pressing .category-delete-btn,
+.category-chip.long-pressing .category-delete-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: scale(1) !important;
+}
+
+/* 长按状态的视觉反馈 */
+.category-chip.long-pressing {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 只在长按状态下才允许hover效果 */
+.category-chip.long-pressing .category-delete-btn:hover {
     background: rgba(255, 0, 0, 0.2);
     color: #ff4444;
 }
 
-.category-delete-btn:active {
+/* 只在长按状态下才允许active效果 */
+.category-chip.long-pressing .category-delete-btn:active {
     background: rgba(255, 0, 0, 0.3);
     transform: scale(0.95);
 }

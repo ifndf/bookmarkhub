@@ -445,6 +445,12 @@ class BookmarkHub {
             if (e.target.closest('.category-delete-btn')) {
                 return;
             }
+            
+            // 如果正在长按状态，不执行筛选
+            if (chip.classList.contains('long-pressing')) {
+                return;
+            }
+            
             this.setFilter(category.id);
         });
         
@@ -456,7 +462,191 @@ class BookmarkHub {
             this.showDeleteCategoryConfirm(category);
         });
         
+        // 添加触摸事件处理删除按钮（移动端）
+        deleteBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            this.showDeleteCategoryConfirm(category);
+        });
+        
+        // 添加长按功能
+        this.addLongPressToCategory(chip);
+        
+        // 强制隐藏删除按钮
+        deleteBtn.style.opacity = '0';
+        deleteBtn.style.visibility = 'hidden';
+        deleteBtn.style.pointerEvents = 'none';
+        deleteBtn.style.transform = 'scale(0.8)';
+        
         return chip;
+    }
+    
+    // 添加长按功能到分类标签
+    addLongPressToCategory(chip) {
+        let longPressTimer = null;
+        let isLongPressing = false;
+        let startTime = 0;
+        
+        const startLongPress = (e) => {
+            // 如果点击的是删除按钮，不启动长按
+            if (e.target.closest('.category-delete-btn')) {
+                return;
+            }
+            
+            startTime = Date.now();
+            isLongPressing = false;
+            
+            longPressTimer = setTimeout(() => {
+                isLongPressing = true;
+                chip.classList.add('long-pressing');
+                
+                // 直接设置删除按钮样式
+                const deleteBtn = chip.querySelector('.category-delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.style.opacity = '1';
+                    deleteBtn.style.visibility = 'visible';
+                    deleteBtn.style.pointerEvents = 'auto';
+                    deleteBtn.style.transform = 'scale(1)';
+                }
+                
+                // 添加振动反馈（如果支持）
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+                
+                // 3秒后自动隐藏删除按钮
+                setTimeout(() => {
+                    if (chip.classList.contains('long-pressing')) {
+                        chip.classList.remove('long-pressing');
+                        isLongPressing = false;
+                        
+                        // 重新隐藏删除按钮
+                        if (deleteBtn) {
+                            deleteBtn.style.opacity = '0';
+                            deleteBtn.style.visibility = 'hidden';
+                            deleteBtn.style.pointerEvents = 'none';
+                            deleteBtn.style.transform = 'scale(0.8)';
+                        }
+                    }
+                }, 3000);
+                
+            }, 500); // 长按500毫秒后显示删除按钮
+        };
+        
+        const endLongPress = (e) => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            
+            // 如果是短按且不在长按状态，执行正常的筛选功能
+            const pressDuration = Date.now() - startTime;
+            if (!isLongPressing && pressDuration < 500 && !e.target.closest('.category-delete-btn')) {
+                // 这里不需要做什么，因为click事件会处理筛选
+                return;
+            }
+        };
+        
+        const cancelLongPress = () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            chip.classList.remove('long-pressing');
+            isLongPressing = false;
+            
+            // 确保删除按钮被隐藏
+            const deleteBtn = chip.querySelector('.category-delete-btn');
+            if (deleteBtn) {
+                deleteBtn.style.opacity = '0';
+                deleteBtn.style.visibility = 'hidden';
+                deleteBtn.style.pointerEvents = 'none';
+                deleteBtn.style.transform = 'scale(0.8)';
+            }
+        };
+        
+        // 鼠标事件 - 只响应左键
+        chip.addEventListener('mousedown', (e) => {
+            // 只响应左键点击
+            if (e.button !== 0) return;
+            
+            e.preventDefault(); // 防止选中文本
+            startLongPress(e);
+        });
+        
+        chip.addEventListener('mouseup', (e) => {
+            // 只响应左键
+            if (e.button !== 0) return;
+            
+            endLongPress(e);
+        });
+        
+        chip.addEventListener('mouseleave', (e) => {
+            cancelLongPress(e);
+        });
+        
+        // 阻止右键菜单
+        chip.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+        
+        // 触摸事件（移动端）
+        chip.addEventListener('touchstart', (e) => {
+            startLongPress(e);
+        }, { passive: true });
+        
+        chip.addEventListener('touchend', (e) => {
+            endLongPress(e);
+            
+            // 如果是长按状态，但点击的是删除按钮，允许click事件
+            if (isLongPressing && !e.target.closest('.category-delete-btn')) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+        
+        chip.addEventListener('touchcancel', cancelLongPress);
+        
+        // 只有当手指移动超过一定距离时才取消长按
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        chip.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+        
+        chip.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                const deltaX = Math.abs(e.touches[0].clientX - touchStartX);
+                const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+                
+                // 只有移动距离超过10px时才取消长按
+                if (deltaX > 10 || deltaY > 10) {
+                    cancelLongPress();
+                }
+            }
+        }, { passive: true });
+        
+        // 点击其他地方时隐藏删除按钮
+        document.addEventListener('click', (e) => {
+            if (!chip.contains(e.target)) {
+                chip.classList.remove('long-pressing');
+                isLongPressing = false;
+                
+                // 隐藏删除按钮
+                const deleteBtn = chip.querySelector('.category-delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.style.opacity = '0';
+                    deleteBtn.style.visibility = 'hidden';
+                    deleteBtn.style.pointerEvents = 'none';
+                    deleteBtn.style.transform = 'scale(0.8)';
+                }
+            }
+        });
     }
     
     // 显示删除分类确认对话框
