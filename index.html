@@ -58,6 +58,10 @@
                         <i class="fas fa-download"></i>
                         备份
                     </button>
+                    <button class="btn btn-outline" id="settingsBtn" title="背景设置">
+                        <i class="fas fa-image"></i>
+                        背景
+                    </button>
                     <button class="btn btn-secondary" id="privacySpaceBtn" title="隐私空间">
                         <i class="fas fa-user-secret"></i>
                         隐私空间
@@ -379,7 +383,6 @@
                     <div class="empty-icon">
                         <i class="fas fa-user-secret"></i>
                     </div>
-                    <h3>隐私空间还没有书签</h3>
                     <p>点击"添加隐私书签"按钮来添加您的第一个私密书签</p>
                 </div>
             </div>
@@ -504,6 +507,136 @@
         <div class="toast-content">
             <i class="toast-icon"></i>
             <span class="toast-message"></span>
+        </div>
+    </div>
+
+    <!-- 应用设置模态框 -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-cog"></i>
+                    应用设置
+                </h2>
+                <button class="modal-close" id="closeSettingsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>
+                        <i class="fas fa-image"></i>
+                        背景壁纸
+                    </h3>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>自定义背景</h4>
+                            <p>设置个性化的背景壁纸，支持本地上传或外链图片</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 背景预览 -->
+                    <div class="background-preview" id="backgroundPreview">
+                        <div class="preview-container">
+                            <div class="preview-text">当前背景预览</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 背景设置选项 -->
+                    <div class="background-options">
+                        <div class="option-group">
+                            <label class="radio-option">
+                                <input type="radio" name="backgroundType" value="none" checked>
+                                <span class="radio-label">
+                                    <i class="fas fa-ban"></i>
+                                    无背景
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <div class="option-group">
+                            <label class="radio-option">
+                                <input type="radio" name="backgroundType" value="upload">
+                                <span class="radio-label">
+                                    <i class="fas fa-upload"></i>
+                                    本地上传
+                                </span>
+                            </label>
+                            <div class="option-content" id="uploadOption" style="display: none;">
+                                <input type="file" id="backgroundUpload" accept="image/*" style="display: none;">
+                                <button class="btn btn-outline" id="selectImageBtn">
+                                    <i class="fas fa-folder-open"></i>
+                                    选择图片
+                                </button>
+                                <div class="upload-info">
+                                    <small>支持 JPG, PNG, GIF 格式，建议尺寸 1920x1080</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-group">
+                            <label class="radio-option">
+                                <input type="radio" name="backgroundType" value="url">
+                                <span class="radio-label">
+                                    <i class="fas fa-link"></i>
+                                    外链图片
+                                </span>
+                            </label>
+                            <div class="option-content" id="urlOption" style="display: none;">
+                                <input type="url" id="backgroundUrl" placeholder="请输入图片链接 (https://...)" class="form-input">
+                                <button class="btn btn-outline" id="previewUrlBtn">
+                                    <i class="fas fa-eye"></i>
+                                    预览
+                                </button>
+                                <div class="url-info">
+                                    <small>请确保图片链接支持跨域访问</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 背景设置 -->
+                    <div class="background-settings" id="backgroundSettings" style="display: none;">
+                        <div class="setting-row">
+                            <label for="backgroundSize">显示方式：</label>
+                            <select id="backgroundSize" class="form-select">
+                                <option value="cover">铺满屏幕</option>
+                                <option value="contain">完整显示</option>
+                                <option value="repeat">重复平铺</option>
+                                <option value="center">居中显示</option>
+                            </select>
+                        </div>
+                        
+                        <div class="setting-row">
+                            <label for="backgroundOpacity">透明度：</label>
+                            <input type="range" id="backgroundOpacity" min="0" max="1" step="0.05" value="0.2" class="range-input">
+                            <span id="opacityValue">20%</span>
+                        </div>
+                        
+                        <div class="setting-row">
+                            <label for="backgroundBlur">模糊效果：</label>
+                            <input type="range" id="backgroundBlur" min="0" max="10" step="1" value="0" class="range-input">
+                            <span id="blurValue">0px</span>
+                        </div>
+                        
+                        <div class="setting-row">
+                            <label for="interfaceOpacity">界面透明度：</label>
+                            <input type="range" id="interfaceOpacity" min="0.5" max="1" step="0.05" value="0.85" class="range-input">
+                            <span id="interfaceOpacityValue">85%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="resetBackgroundBtn">
+                    <i class="fas fa-undo"></i>
+                    重置
+                </button>
+                <button class="btn btn-primary" id="applyBackgroundBtn">
+                    <i class="fas fa-check"></i>
+                    应用
+                </button>
+            </div>
         </div>
     </div>
 

@@ -5,15 +5,6 @@
     box-sizing: border-box;
 }
 
-/* 全局防止长按菜单 */
-body {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
 /* 允许输入框选择文本 */
 input, textarea, [contenteditable] {
     -webkit-user-select: text !important;
@@ -22,7 +13,7 @@ input, textarea, [contenteditable] {
     user-select: text !important;
 }
 
-/* 防止移动端长按滑动 */
+/* 全局样式和移动端优化 */
 html, body {
     overflow-x: hidden;
     position: relative;
@@ -30,8 +21,17 @@ html, body {
 }
 
 body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain; /* 防止滚动链 */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--background);
+    color: var(--text-primary);
+    line-height: 1.6;
 }
 
 /* 强制禁用书签卡片的所有默认触摸行为 */
@@ -72,6 +72,7 @@ body {
     --surface-variant: #F5F5F5;
     
     --border-color: #E0E0E0;
+    --border-light: #F0F0F0;
     --border-radius: 12px;
     --border-radius-small: 8px;
     
@@ -81,6 +82,12 @@ body {
     
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    --error: #F44336;
+    --error-dark: #d32f2f;
+    --on-error: #FFFFFF;
+    --outline-variant: #E0E0E0;
+    --header-bg: #6c757d;
 }
 
 /* 深色模式支持 */
@@ -98,14 +105,6 @@ body {
     }
 }
 
-/* 基础样式 */
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: var(--background);
-    color: var(--text-primary);
-    line-height: 1.6;
-    overflow-x: hidden;
-}
 
 .app {
     min-height: 100vh;
@@ -670,29 +669,35 @@ button.category-delete-btn {
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
+    background: none;
     color: white;
     padding: 2rem 1.25rem 1.25rem;
 }
 
 .bookmark-card.has-image .bookmark-title {
     color: white;
+    text-shadow: 0 3px 8px rgba(0, 0, 0, 1), 0 2px 4px rgba(0, 0, 0, 1), 0 1px 2px rgba(0, 0, 0, 1), 0 0 1px rgba(0, 0, 0, 1);
+    font-weight: 700;
 }
 
 .bookmark-card.has-image .bookmark-description {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.98);
     min-height: 2.55em; /* 保持固定高度 */
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 1), 0 1px 3px rgba(0, 0, 0, 1), 0 0 1px rgba(0, 0, 0, 1);
+    font-weight: 500;
 }
 
 .bookmark-card.has-image .bookmark-category {
     position: absolute;
     bottom: 1.25rem;
     right: 1.25rem;
-    background-color: rgba(255, 255, 255, 0.9) !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
     color: var(--text-primary) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(4px);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    backdrop-filter: none;
     z-index: 20;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .bookmark-card.has-image .bookmark-meta span:last-child {
@@ -716,18 +721,22 @@ button.category-delete-btn {
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(transparent, rgba(139, 115, 85, 0.7), rgba(139, 115, 85, 0.9)); /* 使用米色调的渐变 */
+    background: none;
     color: white;
     padding: 2rem 1.25rem 1.25rem;
 }
 
 .bookmark-card:not(.has-image) .bookmark-title {
     color: white;
+    text-shadow: 0 3px 8px rgba(0, 0, 0, 1), 0 2px 4px rgba(0, 0, 0, 1), 0 1px 2px rgba(0, 0, 0, 1), 0 0 1px rgba(0, 0, 0, 1);
+    font-weight: 700;
 }
 
 .bookmark-card:not(.has-image) .bookmark-description {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.98);
     min-height: 2.55em; /* 保持固定高度 */
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 1), 0 1px 3px rgba(0, 0, 0, 1), 0 0 1px rgba(0, 0, 0, 1);
+    font-weight: 500;
 }
 
 .bookmark-card:not(.has-image) .bookmark-action {
@@ -742,10 +751,12 @@ button.category-delete-btn {
 }
 
 .bookmark-card:not(.has-image) .bookmark-category {
-    background-color: rgba(255, 255, 255, 0.9) !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
     color: var(--text-primary) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(4px);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    backdrop-filter: none;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .bookmark-header {
@@ -848,7 +859,7 @@ button.category-delete-btn {
         bottom: 0 !important;
         left: 0 !important;
         right: 0 !important;
-        background: linear-gradient(transparent, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9)) !important;
+        background: none !important;
         color: white !important;
         padding: 2rem 1.25rem 1.25rem !important;
     }
@@ -858,7 +869,7 @@ button.category-delete-btn {
         bottom: 0 !important;
         left: 0 !important;
         right: 0 !important;
-        background: linear-gradient(transparent, rgba(139, 115, 85, 0.7), rgba(139, 115, 85, 0.9)) !important;
+        background: none !important;
         color: white !important;
         padding: 2rem 1.25rem 1.25rem !important;
     }
@@ -878,15 +889,21 @@ button.category-delete-btn {
     /* PC端文字颜色 */
     .bookmark-card.has-image .bookmark-title {
         color: white !important;
+        text-shadow: 0 3px 8px rgba(0, 0, 0, 1), 0 2px 4px rgba(0, 0, 0, 1), 0 1px 2px rgba(0, 0, 0, 1), 0 0 1px rgba(0, 0, 0, 1) !important;
+        font-weight: 700 !important;
     }
     
     .bookmark-card.has-image .bookmark-description {
-        color: rgba(255, 255, 255, 0.9) !important;
+        color: rgba(255, 255, 255, 0.98) !important;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 1), 0 1px 3px rgba(0, 0, 0, 1), 0 0 1px rgba(0, 0, 0, 1) !important;
+        font-weight: 500 !important;
     }
     
     .bookmark-card:not(.has-image) .bookmark-title,
     .bookmark-card:not(.has-image) .bookmark-description {
         color: white !important;
+        text-shadow: 0 3px 8px rgba(0, 0, 0, 1), 0 2px 4px rgba(0, 0, 0, 1), 0 1px 2px rgba(0, 0, 0, 1), 0 0 1px rgba(0, 0, 0, 1) !important;
+        font-weight: 700 !important;
     }
 }
 
@@ -927,8 +944,18 @@ button.category-delete-btn {
 
 .empty-state h3 {
     font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
     color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.empty-state p {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* 分页控件样式 */
@@ -2062,6 +2089,701 @@ button.category-delete-btn {
     }
 }
 
+/* 应用设置样式 */
+.background-preview {
+    width: 100%;
+    height: 200px;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
+}
+
+.preview-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.preview-text {
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+}
+
+.background-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.option-group {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    background: var(--surface);
+}
+
+.radio-option:hover {
+    background: var(--surface-variant);
+}
+
+.radio-option input[type="radio"] {
+    margin-right: 0.75rem;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
+
+.option-content {
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--background);
+}
+
+.form-input, .form-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--surface);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.upload-info, .url-info {
+    margin-top: 0.5rem;
+}
+
+.upload-info small, .url-info small {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.background-settings {
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--surface);
+    margin-top: 1rem;
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.setting-row:last-child {
+    margin-bottom: 0;
+}
+
+.setting-row label {
+    min-width: 80px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.range-input {
+    flex: 1;
+    margin: 0 0.5rem;
+}
+
+.range-input::-webkit-slider-track {
+    background: var(--border-color);
+    height: 4px;
+    border-radius: 2px;
+}
+
+.range-input::-webkit-slider-thumb {
+    background: var(--primary-color);
+    border: none;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.range-input::-moz-range-track {
+    background: var(--border-color);
+    height: 4px;
+    border-radius: 2px;
+    border: none;
+}
+
+.range-input::-moz-range-thumb {
+    background: var(--primary-color);
+    border: none;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* 背景应用到body */
+body.has-background {
+    position: relative;
+}
+
+body.has-background::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+/* 有背景时的透明效果 */
+body.has-background .header {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.has-background .main {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 12px;
+    margin: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* 分类标签透明效果 */
+body.has-background .chip {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #333;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.has-background .chip:hover {
+    background: rgba(255, 255, 255, 0.95);
+    color: #222;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+body.has-background .chip.active {
+    background: rgba(33, 150, 243, 1);
+    color: white;
+    border-color: rgba(33, 150, 243, 1);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    font-weight: 700;
+    box-shadow: 0 4px 20px rgba(33, 150, 243, 0.4);
+}
+
+/* 书签卡片透明效果 */
+body.has-background .bookmark-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+body.has-background .bookmark-card:hover {
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+/* 书签卡片内文字增强 */
+body.has-background .bookmark-card .bookmark-title {
+    color: #222;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+body.has-background .bookmark-card .bookmark-description {
+    color: #444;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+body.has-background .bookmark-card .bookmark-url {
+    color: #666;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+/* 搜索框透明效果 */
+body.has-background .search-input {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    color: #333;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.has-background .search-input:focus {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(33, 150, 243, 0.5);
+    color: #222;
+}
+
+body.has-background .search-input::placeholder {
+    color: #666;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+/* 按钮透明效果 */
+body.has-background .btn {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.has-background .btn-primary {
+    background: rgba(33, 150, 243, 0.95);
+    border-color: rgba(33, 150, 243, 0.8);
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body.has-background .btn-primary:hover {
+    background: rgba(33, 150, 243, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+body.has-background .btn-outline {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.3);
+    color: #333;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+body.has-background .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.95);
+    color: #222;
+    transform: translateY(-1px);
+}
+
+body.has-background .btn-secondary {
+    background: rgba(108, 117, 125, 0.95);
+    border-color: rgba(108, 117, 125, 0.8);
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+body.has-background .btn-secondary:hover {
+    background: rgba(108, 117, 125, 1);
+    transform: translateY(-1px);
+}
+
+/* 模态框透明效果 */
+body.has-background .modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 分页控件透明效果 */
+body.has-background .pagination {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+/* 空状态透明效果 */
+body.has-background .empty-state {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+/* Toast 透明效果 */
+body.has-background .toast {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 隐私空间保持原样，不应用背景透明效果 */
+/* 重置隐私空间中可能被背景效果影响的元素 */
+body.has-background .privacy-space,
+body.has-background .privacy-space *,
+body.has-background .privacy-header,
+body.has-background .privacy-header *,
+body.has-background .privacy-main,
+body.has-background .privacy-main * {
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+body.has-background .privacy-space .chip,
+body.has-background .privacy-space .bookmark-card,
+body.has-background .privacy-space .search-input,
+body.has-background .privacy-space .btn,
+body.has-background .privacy-space .form-input,
+body.has-background .privacy-space .form-select,
+body.has-background .privacy-space .form-textarea {
+    background: var(--surface) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    font-weight: normal !important;
+}
+
+body.has-background .privacy-space .chip:hover {
+    background: var(--surface-variant) !important;
+}
+
+body.has-background .privacy-space .chip.active {
+    background: var(--primary-color) !important;
+    color: white !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* 隐私空间的主要容器保持原始背景 */
+body.has-background .privacy-space {
+    background: var(--background) !important;
+}
+
+body.has-background .privacy-header {
+    background: var(--header-bg, #6c757d) !important;
+    color: white !important;
+}
+
+body.has-background .privacy-main {
+    background: var(--surface) !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 2rem !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+/* 隐私空间的模态框也保持原样 */
+body.has-background #privacySettingsModal .modal-content,
+body.has-background .privacy-space .modal-content {
+    background: var(--surface) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+body.has-background #privacySettingsModal *,
+body.has-background .privacy-space .modal *,
+body.has-background .privacy-space .modal *,
+body.has-background #privacyPasswordModal *,
+body.has-background .privacy-password-overlay * {
+    text-shadow: none !important;
+    font-weight: normal !important;
+}
+
+/* 隐私空间密码界面保持原样 */
+body.has-background #privacyPasswordModal,
+body.has-background .privacy-password-overlay {
+    background: rgba(0, 0, 0, 0.5) !important;
+}
+
+body.has-background #privacyPasswordModal .modal-content,
+body.has-background .privacy-password-overlay .modal-content {
+    background: var(--surface) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* 表单元素透明效果（排除隐私空间） */
+body.has-background .main .form-input,
+body.has-background .main .form-select,
+body.has-background .main .form-textarea,
+body.has-background .modal .form-input,
+body.has-background .modal .form-select,
+body.has-background .modal .form-textarea {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    color: #333;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+body.has-background .main .form-input:focus,
+body.has-background .main .form-select:focus,
+body.has-background .main .form-textarea:focus,
+body.has-background .modal .form-input:focus,
+body.has-background .modal .form-select:focus,
+body.has-background .modal .form-textarea:focus {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(33, 150, 243, 0.6);
+    color: #222;
+    box-shadow: 0 2px 12px rgba(33, 150, 243, 0.2);
+}
+
+/* 深色主题的透明效果 */
+[data-theme="dark"] body.has-background .header {
+    background: rgba(20, 20, 20, 0.9);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] body.has-background .main {
+    background: rgba(25, 25, 25, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] body.has-background .chip {
+    background: rgba(40, 40, 40, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    font-weight: 500;
+}
+
+[data-theme="dark"] body.has-background .chip:hover {
+    background: rgba(50, 50, 50, 0.95);
+    color: #f0f0f0;
+    transform: translateY(-1px);
+}
+
+[data-theme="dark"] body.has-background .chip.active {
+    background: rgba(33, 150, 243, 0.95);
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    font-weight: 600;
+}
+
+[data-theme="dark"] body.has-background .bookmark-card {
+    background: rgba(35, 35, 35, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] body.has-background .bookmark-card:hover {
+    background: rgba(45, 45, 45, 0.97);
+    transform: translateY(-2px);
+}
+
+[data-theme="dark"] body.has-background .bookmark-card .bookmark-title {
+    color: #f0f0f0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] body.has-background .bookmark-card .bookmark-description,
+[data-theme="dark"] body.has-background .bookmark-card .bookmark-url {
+    color: #c0c0c0;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] body.has-background .search-input {
+    background: rgba(40, 40, 40, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+[data-theme="dark"] body.has-background .search-input::placeholder {
+    color: #999;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] body.has-background .btn-outline {
+    background: rgba(40, 40, 40, 0.9);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] body.has-background .btn-outline:hover {
+    background: rgba(50, 50, 50, 0.95);
+    color: #f0f0f0;
+}
+
+[data-theme="dark"] body.has-background .modal-content {
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] body.has-background .pagination {
+    background: rgba(40, 40, 40, 0.8);
+}
+
+[data-theme="dark"] body.has-background .empty-state {
+    background: rgba(40, 40, 40, 0.8);
+}
+
+[data-theme="dark"] body.has-background .toast {
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] body.has-background .main .form-input,
+[data-theme="dark"] body.has-background .main .form-select,
+[data-theme="dark"] body.has-background .main .form-textarea,
+[data-theme="dark"] body.has-background .modal .form-input,
+[data-theme="dark"] body.has-background .modal .form-select,
+[data-theme="dark"] body.has-background .modal .form-textarea {
+    background: rgba(45, 45, 45, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] body.has-background .main .form-input:focus,
+[data-theme="dark"] body.has-background .main .form-select:focus,
+[data-theme="dark"] body.has-background .main .form-textarea:focus,
+[data-theme="dark"] body.has-background .modal .form-input:focus,
+[data-theme="dark"] body.has-background .modal .form-select:focus,
+[data-theme="dark"] body.has-background .modal .form-textarea:focus {
+    background: rgba(55, 55, 55, 0.95);
+}
+
+/* 移动端背景透明效果优化 */
+@media (max-width: 768px) {
+    /* 移动端卡片需要更高透明度和对比度 */
+    body.has-background .bookmark-card {
+        background: rgba(255, 255, 255, 0.97) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 2px solid rgba(0, 0, 0, 0.15) !important;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    body.has-background .bookmark-card:hover {
+        background: rgba(255, 255, 255, 0.99) !important;
+        box-shadow: 0 8px 35px rgba(0, 0, 0, 0.25) !important;
+    }
+    
+    /* 移动端分类标签增强 */
+    body.has-background .chip {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+        border: 2px solid rgba(0, 0, 0, 0.2) !important;
+        color: #222 !important;
+        font-weight: 600 !important;
+        text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8) !important;
+    }
+    
+    body.has-background .chip:hover {
+        background: rgba(255, 255, 255, 0.98) !important;
+    }
+    
+    body.has-background .chip.active {
+        background: rgba(33, 150, 243, 1) !important;
+        border-color: rgba(33, 150, 243, 1) !important;
+        color: white !important;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 移动端主容器增强 */
+    body.has-background .main {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(25px) !important;
+        -webkit-backdrop-filter: blur(25px) !important;
+        border: 2px solid rgba(0, 0, 0, 0.1) !important;
+        margin: 0.5rem !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    /* 移动端搜索框增强 */
+    body.has-background .search-input {
+        background: rgba(255, 255, 255, 0.98) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+        border: 2px solid rgba(0, 0, 0, 0.2) !important;
+        color: #222 !important;
+        font-weight: 600 !important;
+    }
+    
+    /* 移动端按钮增强 */
+    body.has-background .btn-outline {
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 2px solid rgba(0, 0, 0, 0.3) !important;
+        color: #222 !important;
+        font-weight: 600 !important;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+    }
+    
+    /* 移动端深色主题优化 */
+    [data-theme="dark"] body.has-background .bookmark-card {
+        background: rgba(25, 25, 25, 0.97) !important;
+        border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    [data-theme="dark"] body.has-background .chip {
+        background: rgba(35, 35, 35, 0.95) !important;
+        border: 2px solid rgba(255, 255, 255, 0.25) !important;
+        color: #f0f0f0 !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+    }
+    
+    [data-theme="dark"] body.has-background .main {
+        background: rgba(20, 20, 20, 0.95) !important;
+        border: 2px solid rgba(255, 255, 255, 0.15) !important;
+    }
+    
+    [data-theme="dark"] body.has-background .search-input {
+        background: rgba(35, 35, 35, 0.98) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        color: #f0f0f0 !important;
+    }
+    
+    [data-theme="dark"] body.has-background .btn-outline {
+        background: rgba(35, 35, 35, 0.95) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        color: #f0f0f0 !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+    }
+}
+
 /* 动画效果 */
 @keyframes fadeIn {
     from {
@@ -2100,7 +2822,7 @@ button.category-delete-btn {
 .settings-section {
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background: var(--surface-color);
+    background: var(--surface);
     border-radius: 0.75rem;
     border: 1px solid var(--border-color);
 }
@@ -2129,7 +2851,7 @@ button.category-delete-btn {
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    background: var(--background-color);
+    background: var(--background);
     border-radius: 0.5rem;
     border: 1px solid var(--border-light);
 }
@@ -2159,7 +2881,7 @@ button.category-delete-btn {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem;
-    background: var(--background-color);
+    background: var(--background);
     border-radius: 0.5rem;
     border: 1px solid var(--border-light);
 }

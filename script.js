@@ -278,8 +278,11 @@ class BookmarkHub {
             // 分页控件事件
             this.bindPaginationEvents();
         
-            // 隐私空间相关事件
-            this.bindPrivacyEvents();
+        // 隐私空间相关事件
+        this.bindPrivacyEvents();
+        
+        // 应用设置相关事件
+        this.bindSettingsEvents();
         } catch (error) {
             console.error('❌ 事件绑定过程中出错:', error);
         }
@@ -308,6 +311,9 @@ class BookmarkHub {
         
         // 修复数据：将没有对应分类的书签移动到未分类
         this.fixOrphanedBookmarks();
+        
+        // 加载背景设置
+        this.loadBackgroundSettings();
     }
     
     // 修复孤立书签（没有对应分类的书签）
@@ -3323,6 +3329,448 @@ class BookmarkHub {
             
             // 清除临时数据
             delete this.tempImportedPrivacyData;
+        }
+    }
+    
+    // ==================== 背景设置功能 ====================
+    
+    // 绑定设置相关事件
+    bindSettingsEvents() {
+        // 设置按钮
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            this.showSettingsModal();
+        });
+        
+        // 关闭设置模态框
+        document.getElementById('closeSettingsModal').addEventListener('click', () => {
+            this.hideSettingsModal();
+        });
+        
+        // 背景类型选择
+        document.querySelectorAll('input[name="backgroundType"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.handleBackgroundTypeChange(e.target.value);
+            });
+        });
+        
+        // 选择图片按钮
+        document.getElementById('selectImageBtn').addEventListener('click', () => {
+            document.getElementById('backgroundUpload').click();
+        });
+        
+        // 文件上传
+        document.getElementById('backgroundUpload').addEventListener('change', (e) => {
+            this.handleImageUpload(e);
+        });
+        
+        // 外链预览按钮
+        document.getElementById('previewUrlBtn').addEventListener('click', () => {
+            this.previewUrlImage();
+        });
+        
+        // 背景设置滑块
+        document.getElementById('backgroundOpacity').addEventListener('input', (e) => {
+            this.updateOpacityValue(e.target.value);
+        });
+        
+        document.getElementById('backgroundBlur').addEventListener('input', (e) => {
+            this.updateBlurValue(e.target.value);
+        });
+        
+        // 界面透明度滑块
+        document.getElementById('interfaceOpacity').addEventListener('input', (e) => {
+            this.updateInterfaceOpacityValue(e.target.value);
+        });
+        
+        // 应用背景按钮
+        document.getElementById('applyBackgroundBtn').addEventListener('click', () => {
+            this.applyBackground();
+        });
+        
+        // 重置背景按钮
+        document.getElementById('resetBackgroundBtn').addEventListener('click', () => {
+            this.resetBackground();
+        });
+    }
+    
+    // 显示设置模态框
+    showSettingsModal() {
+        const modal = document.getElementById('settingsModal');
+        modal.classList.add('show');
+        this.loadCurrentBackgroundSettings();
+    }
+    
+    // 隐藏设置模态框
+    hideSettingsModal() {
+        const modal = document.getElementById('settingsModal');
+        modal.classList.remove('show');
+    }
+    
+    // 处理背景类型变化
+    handleBackgroundTypeChange(type) {
+        // 隐藏所有选项内容
+        document.getElementById('uploadOption').style.display = 'none';
+        document.getElementById('urlOption').style.display = 'none';
+        document.getElementById('backgroundSettings').style.display = 'none';
+        
+        // 显示对应的选项内容
+        if (type === 'upload') {
+            document.getElementById('uploadOption').style.display = 'block';
+            document.getElementById('backgroundSettings').style.display = 'block';
+        } else if (type === 'url') {
+            document.getElementById('urlOption').style.display = 'block';
+            document.getElementById('backgroundSettings').style.display = 'block';
+        }
+        
+        // 更新预览
+        this.updateBackgroundPreview();
+    }
+    
+    // 处理图片上传
+    handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // 检查文件类型
+        if (!file.type.startsWith('image/')) {
+            this.showToast('请选择图片文件', 'error');
+            return;
+        }
+        
+        // 检查文件大小（限制5MB）
+        if (file.size > 5 * 1024 * 1024) {
+            this.showToast('图片文件过大，请选择小于5MB的图片', 'error');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.currentBackgroundData = {
+                type: 'upload',
+                data: e.target.result,
+                size: document.getElementById('backgroundSize').value,
+                opacity: document.getElementById('backgroundOpacity').value,
+                blur: document.getElementById('backgroundBlur').value,
+                interfaceOpacity: document.getElementById('interfaceOpacity').value
+            };
+            this.updateBackgroundPreview();
+            this.showToast('图片上传成功', 'success');
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // 预览外链图片
+    previewUrlImage() {
+        const url = document.getElementById('backgroundUrl').value.trim();
+        if (!url) {
+            this.showToast('请输入图片链接', 'error');
+            return;
+        }
+        
+        // 简单的URL验证
+        try {
+            new URL(url);
+        } catch {
+            this.showToast('请输入有效的图片链接', 'error');
+            return;
+        }
+        
+        // 测试图片是否可以加载
+        const img = new Image();
+        img.onload = () => {
+            this.currentBackgroundData = {
+                type: 'url',
+                data: url,
+                size: document.getElementById('backgroundSize').value,
+                opacity: document.getElementById('backgroundOpacity').value,
+                blur: document.getElementById('backgroundBlur').value,
+                interfaceOpacity: document.getElementById('interfaceOpacity').value
+            };
+            this.updateBackgroundPreview();
+            this.showToast('图片预览成功', 'success');
+        };
+        img.onerror = () => {
+            this.showToast('无法加载图片，请检查链接是否正确', 'error');
+        };
+        img.src = url;
+    }
+    
+    // 更新背景预览
+    updateBackgroundPreview() {
+        const preview = document.querySelector('.preview-container');
+        const selectedType = document.querySelector('input[name="backgroundType"]:checked').value;
+        
+        if (selectedType === 'none') {
+            preview.style.backgroundImage = 'none';
+            preview.querySelector('.preview-text').textContent = '无背景';
+        } else if (this.currentBackgroundData && this.currentBackgroundData.type === selectedType) {
+            const { data, size, opacity, blur } = this.currentBackgroundData;
+            preview.style.backgroundImage = `url(${data})`;
+            preview.style.backgroundSize = size;
+            preview.style.opacity = 1 - opacity; // 反转透明度逻辑
+            preview.style.filter = `blur(${blur}px)`;
+            preview.querySelector('.preview-text').textContent = '背景预览';
+        } else {
+            preview.style.backgroundImage = 'none';
+            preview.querySelector('.preview-text').textContent = '请选择背景图片';
+        }
+    }
+    
+    // 更新透明度值显示
+    updateOpacityValue(value) {
+        // 显示的是背景的透明程度，0%=完全可见，100%=完全透明
+        document.getElementById('opacityValue').textContent = Math.round(value * 100) + '%';
+        if (this.currentBackgroundData) {
+            this.currentBackgroundData.opacity = value;
+            this.updateBackgroundPreview();
+        }
+    }
+    
+    // 更新模糊值显示
+    updateBlurValue(value) {
+        document.getElementById('blurValue').textContent = value + 'px';
+        if (this.currentBackgroundData) {
+            this.currentBackgroundData.blur = value;
+            this.updateBackgroundPreview();
+        }
+    }
+    
+    // 更新界面透明度值显示
+    updateInterfaceOpacityValue(value) {
+        document.getElementById('interfaceOpacityValue').textContent = Math.round(value * 100) + '%';
+        if (this.currentBackgroundData) {
+            this.currentBackgroundData.interfaceOpacity = value;
+            this.applyInterfaceOpacity(value);
+        }
+    }
+    
+    // 应用界面透明度
+    applyInterfaceOpacity(opacity) {
+        const existingStyle = document.getElementById('interface-opacity-style');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+        
+        const styleEl = document.createElement('style');
+        styleEl.id = 'interface-opacity-style';
+        
+        // 计算透明度值 - 允许完全透明
+        const mainOpacity = Math.max(1 - opacity, 0.1); // 主容器基础透明度，最小10%
+        const cardOpacity = Math.max(1 - opacity + 0.1, 0.15); // 卡片透明度，最小15%
+        const chipOpacity = Math.max(1 - opacity + 0.05, 0.12);  // 标签透明度，最小12%
+        
+        styleEl.textContent = `
+            body.has-background .header {
+                background: rgba(255, 255, 255, ${Math.max(1 - opacity + 0.05, 0.15)}) !important;
+            }
+            body.has-background .main {
+                background: rgba(255, 255, 255, ${mainOpacity}) !important;
+            }
+            body.has-background .chip {
+                background: rgba(255, 255, 255, ${chipOpacity}) !important;
+            }
+            body.has-background .bookmark-card {
+                background: rgba(255, 255, 255, ${cardOpacity}) !important;
+            }
+            body.has-background .modal-content {
+                background: rgba(255, 255, 255, ${Math.max(1 - opacity + 0.15, 0.2)}) !important;
+            }
+            body.has-background .search-input {
+                background: rgba(255, 255, 255, ${Math.max(1 - opacity + 0.1, 0.18)}) !important;
+            }
+            body.has-background .btn-outline {
+                background: rgba(255, 255, 255, ${chipOpacity}) !important;
+            }
+            
+            /* 深色主题 */
+            [data-theme="dark"] body.has-background .header {
+                background: rgba(30, 30, 30, ${Math.max(1 - opacity + 0.05, 0.15)}) !important;
+            }
+            [data-theme="dark"] body.has-background .main {
+                background: rgba(30, 30, 30, ${mainOpacity}) !important;
+            }
+            [data-theme="dark"] body.has-background .chip {
+                background: rgba(45, 45, 45, ${chipOpacity}) !important;
+            }
+            [data-theme="dark"] body.has-background .bookmark-card {
+                background: rgba(40, 40, 40, ${cardOpacity}) !important;
+            }
+            [data-theme="dark"] body.has-background .modal-content {
+                background: rgba(30, 30, 30, ${Math.max(1 - opacity + 0.15, 0.2)}) !important;
+            }
+            [data-theme="dark"] body.has-background .search-input {
+                background: rgba(45, 45, 45, ${Math.max(1 - opacity + 0.1, 0.18)}) !important;
+            }
+            [data-theme="dark"] body.has-background .btn-outline {
+                background: rgba(45, 45, 45, ${chipOpacity}) !important;
+            }
+        `;
+        document.head.appendChild(styleEl);
+    }
+    
+    // 应用背景
+    applyBackground() {
+        const selectedType = document.querySelector('input[name="backgroundType"]:checked').value;
+        
+        if (selectedType === 'none') {
+            this.removeBackground();
+        } else if (this.currentBackgroundData && this.currentBackgroundData.type === selectedType) {
+            // 更新当前数据
+            this.currentBackgroundData.size = document.getElementById('backgroundSize').value;
+            this.currentBackgroundData.opacity = document.getElementById('backgroundOpacity').value;
+            this.currentBackgroundData.blur = document.getElementById('backgroundBlur').value;
+            this.currentBackgroundData.interfaceOpacity = document.getElementById('interfaceOpacity').value;
+            
+            this.setBackground(this.currentBackgroundData);
+            this.applyInterfaceOpacity(this.currentBackgroundData.interfaceOpacity);
+        } else {
+            this.showToast('请先选择或预览背景图片', 'error');
+            return;
+        }
+        
+        this.saveBackgroundSettings();
+        this.hideSettingsModal();
+        this.showToast('背景设置已应用', 'success');
+    }
+    
+    // 设置背景
+    setBackground(backgroundData) {
+        const body = document.body;
+        body.classList.add('has-background');
+        
+        const style = body.style;
+        style.setProperty('--background-image', `url(${backgroundData.data})`);
+        style.setProperty('--background-size', backgroundData.size);
+        style.setProperty('--background-opacity', backgroundData.opacity);
+        style.setProperty('--background-blur', `${backgroundData.blur}px`);
+        
+        // 更新CSS
+        const existingStyle = document.getElementById('dynamic-background-style');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+        
+        const styleEl = document.createElement('style');
+        styleEl.id = 'dynamic-background-style';
+        styleEl.textContent = `
+            body.has-background::before {
+                background-image: ${`url(${backgroundData.data})`};
+                background-size: ${backgroundData.size};
+                opacity: ${1 - backgroundData.opacity};
+                filter: blur(${backgroundData.blur}px);
+            }
+        `;
+        document.head.appendChild(styleEl);
+    }
+    
+    // 移除背景
+    removeBackground() {
+        document.body.classList.remove('has-background');
+        const existingStyle = document.getElementById('dynamic-background-style');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+        const interfaceStyle = document.getElementById('interface-opacity-style');
+        if (interfaceStyle) {
+            interfaceStyle.remove();
+        }
+    }
+    
+    // 重置背景
+    resetBackground() {
+        // 重置表单
+        document.querySelector('input[value="none"]').checked = true;
+        document.getElementById('backgroundUrl').value = '';
+        document.getElementById('backgroundUpload').value = '';
+        document.getElementById('backgroundSize').value = 'cover';
+        document.getElementById('backgroundOpacity').value = '0.2';
+        document.getElementById('backgroundBlur').value = '0';
+        document.getElementById('interfaceOpacity').value = '0.85';
+        
+        // 更新显示
+        this.updateOpacityValue('0.2');
+        this.updateBlurValue('0');
+        this.updateInterfaceOpacityValue('0.85');
+        
+        // 隐藏选项
+        this.handleBackgroundTypeChange('none');
+        
+        // 清除当前数据
+        this.currentBackgroundData = null;
+        
+        // 移除背景
+        this.removeBackground();
+        
+        // 保存设置
+        this.saveBackgroundSettings();
+        
+        this.showToast('背景已重置', 'success');
+    }
+    
+    // 保存背景设置
+    saveBackgroundSettings() {
+        const selectedType = document.querySelector('input[name="backgroundType"]:checked').value;
+        const settings = {
+            type: selectedType,
+            data: this.currentBackgroundData
+        };
+        localStorage.setItem('bookmarkhub_background_settings', JSON.stringify(settings));
+    }
+    
+    // 加载背景设置
+    loadBackgroundSettings() {
+        try {
+            const saved = localStorage.getItem('bookmarkhub_background_settings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                if (settings.data) {
+                    this.currentBackgroundData = settings.data;
+                    this.setBackground(settings.data);
+                    if (settings.data.interfaceOpacity) {
+                        this.applyInterfaceOpacity(settings.data.interfaceOpacity);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('加载背景设置失败:', error);
+        }
+    }
+    
+    // 加载当前背景设置到界面
+    loadCurrentBackgroundSettings() {
+        const saved = localStorage.getItem('bookmarkhub_background_settings');
+        if (saved) {
+            try {
+                const settings = JSON.parse(saved);
+                
+                // 设置背景类型
+                const typeRadio = document.querySelector(`input[value="${settings.type}"]`);
+                if (typeRadio) {
+                    typeRadio.checked = true;
+                    this.handleBackgroundTypeChange(settings.type);
+                }
+                
+                // 如果有背景数据，恢复设置
+                if (settings.data) {
+                    this.currentBackgroundData = settings.data;
+                    
+                    if (settings.data.type === 'url') {
+                        document.getElementById('backgroundUrl').value = settings.data.data;
+                    }
+                    
+                    document.getElementById('backgroundSize').value = settings.data.size || 'cover';
+                    document.getElementById('backgroundOpacity').value = settings.data.opacity || '0.2';
+                    document.getElementById('backgroundBlur').value = settings.data.blur || '0';
+                    document.getElementById('interfaceOpacity').value = settings.data.interfaceOpacity || '0.85';
+                    
+                    this.updateOpacityValue(settings.data.opacity || '0.2');
+                    this.updateBlurValue(settings.data.blur || '0');
+                    this.updateInterfaceOpacityValue(settings.data.interfaceOpacity || '0.85');
+                    this.updateBackgroundPreview();
+                }
+            } catch (error) {
+                console.error('恢复背景设置失败:', error);
+            }
         }
     }
 }
