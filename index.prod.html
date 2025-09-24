@@ -8,8 +8,8 @@
     <title>BookmarkHub - 私人书签管理</title>
     
     <!-- 预加载关键资源 -->
-    <link rel="preload" href="styles.css" as="style">
-    <link rel="preload" href="script.js" as="script">
+    <link rel="preload" href="styles.min.css" as="style">
+    <link rel="preload" href="script.min.js" as="script">
     
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -35,6 +35,12 @@
     <!-- 异步加载图标库 -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+
+    <!-- 性能优化提示 -->
+    <meta name="theme-color" content="#2196F3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div class="app">
@@ -651,7 +657,7 @@
     </div>
 
     <!-- 性能优化脚本 -->
-    <script src="optimize.js" defer></script>
+    <script src="optimize.min.js" defer></script>
     <!-- 异步加载JavaScript -->
     <script src="script.js" defer></script>
 </body>
